@@ -1,0 +1,191 @@
+swagger: '2.0'
+info:
+  description: The Customer Identity Service is intended to act as a single interface for mapping different types of anonyms to a single customer identity and vice versa.
+  version: 1.0.0
+  title: Customer Identity Service
+host: customer-identity.jumo.world
+externalDocs:
+  description: Confluence Document.
+  url: 'https://jumoprod.atlassian.net/wiki/display/ENG/Customer+Identification+Service'
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  '/identities':
+    post:
+      deprecated: true
+      description: Create a new identity and associate it with the given anonyms.
+      operationId: createIdentities
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: body
+          name: anonym_associations
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/AnonymAssociations'
+      responses:
+        '200':
+          description: Created identity for anonym.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ResponseBody'
+  '/identities/':
+    get:
+      deprecated: true
+      description: Get a customer identity by customer_identifier.
+      operationId: getIdentities
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: query
+          name: customer_identifiers
+          required: true
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: Got the customer identifier.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ResponseBody'
+  '/identities/{customer_identifier}/anonym_associations':
+    post:
+      deprecated: true
+      description: Associate an annoym with an existing customer identifier.
+      operationId: associateAnonym
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: customer_identifier
+          required: true
+          type: string
+        - in: body
+          name: anonym_association
+          required: true
+          schema:
+            $ref: '#/definitions/AnonymAssociation'
+      responses:
+        '200':
+          description: Associated anonym to identifier.
+          schema:
+            $ref: '#/definitions/ResponseBody'
+  '/identities/{customer_identifier}/anonym_associations/{anonym_identifier}':
+    patch:
+      deprecated: true
+      description: Dissociate an anonym from a customer identifier it is associated with.
+      operationId: dissociateAnonym
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: path
+          name: customer_identifier
+          required: true
+          type: string
+        - in: path
+          name: anonym_identifier
+          description: "The form of an anonym_identifier: 'anonym.form+anonym.value'"
+          required: true
+          type: string
+        - in: body
+          name: anonym_association
+          required: true
+          schema:
+            $ref: '#/definitions/AnonymAssociation'
+      responses:
+        '200':
+          description: Dissociated anonym from the customer identifier.
+          schema:
+            $ref: '#/definitions/ResponseBody'
+  '/anonym-associations':
+    get:
+      deprecated: true
+      description: Search for anonym associations.
+      operationId: searchAnonymAssociations
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - in: query
+          name: anonym_identifiers
+          description: "The form of an anonym_identifier: 'anonym.form+anonym.value'"
+          required: true
+          type: array
+          items:
+            type: string
+        - in: query
+          name: at
+          description: "The date to be used as filter (active anonym at this date)"
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Found anonym associations.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ResponseBody'
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    in: header
+    name: Authorization
+definitions:
+  Identity:
+    type: object
+    properties:
+      customer_identifier:
+        type: string
+  Anonym:
+    type: object
+    properties:
+      form:
+        type: string
+      value:
+        type: string
+  AnonymAssociation:
+    type: object
+    properties:
+      identity:
+        $ref: '#/definitions/Identity'
+      anonym:
+        $ref: '#/definitions/Anonym'
+      associated_at:
+        type: string
+        format: date-time
+      dissociated_at:
+        type: string
+        format: date-time
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  AnonymAssociations:
+    type: object
+    properties:
+      anonym_associations:
+        type: array
+        items:
+          $ref: '#/definitions/AnonymAssociation'
+  ResponseBody:
+    type: object
+    properties:
+      status_code:
+        type: string
+      body:
+        type: object
+        properties:
+          anonym_associations:
+            type: array
+            items:
+              $ref: '#/definitions/AnonymAssociation'
